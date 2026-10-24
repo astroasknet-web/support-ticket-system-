@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<% if (locals.csrfToken) { %><meta name="csrf-token" content="<%= csrfToken %>"><% } %>
+<title><%= title %> | <%= BRAND %></title>
+<meta name="description" content="<%= locals.metaDesc || (BRAND + ' customer support: open a ticket and track the reply.') %>">
+<meta name="robots" content="<%= locals.noindex ? 'noindex, nofollow' : 'index, follow' %>">
+<% if (locals.canonical) { %><link rel="canonical" href="<%= canonical %>"><% } %>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta name="theme-color" content="#1e3a8a">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/main.css?v=<%= assetVer %>">
+<% if (locals.extraCss) { %><link rel="stylesheet" href="<%= extraCss %>?v=<%= assetVer %>"><% } %>
+</head>
+<body>
+<nav class="site-nav" aria-label="Main">
+  <div class="nav-inner">
+    <a class="nav-logo" href="/support"><div class="logo-badge"><%= BRAND.charAt(0).toUpperCase() %></div><%= BRAND %></a>
+    <div class="nav-right">
+      <div class="nav-links">
+        <a href="/support">New ticket</a>
+        <% if (locals.user && user) { %>
+          <a href="/dashboard/support">My tickets</a>
+          <% if (['admin','super_admin'].includes(user.role)) { %><a href="/admin/support">Admin</a><% } %>
+          <form action="/auth/logout" method="POST" style="display:inline"><input type="hidden" name="_csrf" value="<%= csrfToken %>"><button type="submit" class="nav-linkbtn">Log out</button></form>
+        <% } else { %>
+          <a href="/auth/login">Log in</a>
+          <% if (ALLOW_REGISTRATION) { %><a href="/auth/register">Sign up</a><% } %>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</nav>
+<%- body %>
+<footer class="site-footer">&copy; <%= new Date().getFullYear() %> <%= BRAND %></footer>
+</body>
+</html>

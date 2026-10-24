@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title><%= t.ticket_no %> — Support Ticket Export</title>
+<style>
+  body { font-family: Arial, Helvetica, sans-serif; max-width: 800px; margin: 24px auto; padding: 0 16px; color: #111; font-size: 14px; line-height: 1.6; }
+  h1 { font-size: 20px; border-bottom: 2px solid #0f766e; padding-bottom: 8px; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+  td, th { border: 1px solid #ccc; padding: 6px 10px; text-align: left; vertical-align: top; }
+  th { background: #f3f4f6; width: 160px; }
+  .msg { border: 1px solid #bbb; border-radius: 8px; padding: 10px 14px; margin: 10px 0; white-space: pre-wrap; }
+  .msg .meta { font-size: 12px; color: #555; font-weight: bold; margin-bottom: 4px; }
+  .internal { background: #fffbe6; border-style: dashed; }
+  .events li { font-size: 12px; color: #444; }
+  @media print { .noprint { display: none; } }
+</style>
+</head>
+<body>
+<p class="noprint"><button onclick="window.print()">Print / Save as PDF</button></p>
+<h1><%= BRAND %> — Support Ticket <%= t.ticket_no %></h1>
+<table>
+  <tr><th>Subject</th><td><%= t.subject %></td></tr>
+  <tr><th>Status / Priority</th><td><%= SUP.STATUS_LABELS[t.status] %> / <%= SUP.PRIORITY_LABELS[t.priority] %></td></tr>
+  <tr><th>Customer</th><td><%= t.name %> &lt;<%= t.email %>&gt;<% if (t.phone) { %> · <%= t.phone %><% } %></td></tr>
+  <tr><th>Category</th><td><%= t.category_name || '—' %></td></tr>
+  <tr><th>Reference / payment</th><td><%= t.order_ref || '—' %> / <%= t.payment_ref || '—' %></td></tr>
+  <tr><th>Product / service</th><td><%= t.product_title || '—' %></td></tr>
+  <tr><th>Opened</th><td><%= SUP.fmt(t.created_at) %></td></tr>
+  <tr><th>Resolved / Closed</th><td><%= SUP.fmt(t.resolved_at) %> / <%= SUP.fmt(t.closed_at) %></td></tr>
+  <% if (t.rating) { %><tr><th>Rating</th><td><%= t.rating %>/5<% if (t.rating_comment) { %> — <%= t.rating_comment %><% } %></td></tr><% } %>
+  <tr><th>Browser / IP</th><td><%= t.browser_info || '—' %> · <%= t.ip || '—' %></td></tr>
+</table>
+
+<h2>Conversation</h2>
+<% msgs.forEach(function(m){ %>
+  <div class="msg <%= m.is_internal ? 'internal' : '' %>">
+    <div class="meta"><%= m.is_internal ? 'INTERNAL NOTE — ' : '' %><%= m.sender === 'staff' ? (m.staff_name || 'Staff') : t.name %> · <%= SUP.fmt(m.created_at) %></div><%= m.body %><% const atts = attachmentsByMsg[m.id] || []; if (atts.length) { %><div style="margin-top:6px;font-size:12px;color:#555">Attachments: <% atts.forEach(function(a){ %><%= a.orig_name %> (<%= Math.round(a.size/1024) %> KB) <% }) %></div><% } %>
+  </div>
+<% }) %>
+
+<h2>Activity log</h2>
+<ul class="events">
+  <% events.forEach(function(e){ %>
+    <li><%= SUP.fmt(e.created_at) %> — <strong><%= e.actor %></strong>: <%= e.kind %><%= e.detail ? ' — ' + e.detail : '' %></li>
+  <% }) %>
+</ul>
+<p style="font-size:11px;color:#777">Exported from the <%= BRAND %> support system.</p>
+</body>
+</html>

@@ -1,0 +1,23 @@
+<% locals.layout = 'layout' %>
+<div class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-logo"><a href="/" class="nav-logo" style="justify-content:center"><div class="logo-badge"><%= BRAND.charAt(0).toUpperCase() %></div><%= BRAND %></a></div>
+    <h1 class="auth-title" style="font-size:1.4rem">Welcome back</h1>
+    <p class="auth-sub">Log in to see your tickets</p>
+    <% if (locals.error && error) { %><div class="form-error"><%= error %></div><% } %>
+    <form action="/auth/login" method="POST">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <input type="hidden" name="next" value="<%= locals.next || '/dashboard' %>">
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" name="email" required autocomplete="email" placeholder="you@example.com">
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required autocomplete="current-password" placeholder="Your password">
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;padding:12px">Log In</button>
+    </form>
+    <p class="form-alt">Don't have an account? <a href="/auth/register">Sign up free</a></p>
+  </div>
+</div>

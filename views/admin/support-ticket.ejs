@@ -1,0 +1,169 @@
+<main class="sup-wrap">
+  <div class="sup-head" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px">
+    <div>
+      <p style="margin-bottom:4px"><a href="/admin/support">← All tickets</a></p>
+      <h1 style="font-size:1.3rem"><%= t.ticket_no %> — <%= t.subject %></h1>
+      <p>
+        <span class="sup-badge st-<%= t.status %>"><%= SUP.STATUS_LABELS[t.status] %></span>
+        <span class="sup-badge pr-<%= t.priority %>"><%= SUP.PRIORITY_LABELS[t.priority] %></span>
+        <% if (t.category_name) { %><span class="sup-badge" style="background:#f1f5f9;color:#334155"><%= t.category_name %></span><% } %>
+        <% if (t.is_spam) { %><span class="sup-badge" style="background:#fee2e2;color:#b91c1c">SPAM</span><% } %>
+        <% if (t.merged_into) { %><span class="sup-badge" style="background:#ede9fe;color:#6d28d9">Merged</span><% } %>
+        <% if (t.rating) { %><span class="sup-badge" style="background:#fef3c7;color:#b45309"><%= t.rating %>★ rated</span><% } %>
+      </p>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <a class="sup-btn-sm" style="text-decoration:none;display:inline-flex;align-items:center" href="#reply">✉ Reply</a>
+      <% if (!['resolved','closed'].includes(t.status)) { %>
+        <form method="POST" action="/admin/support/<%= t.id %>/status" style="display:inline">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <input type="hidden" name="status" value="resolved">
+          <button type="submit" class="sup-btn-sm" style="background:#059669">✔ Mark Resolved</button>
+        </form>
+        <form method="POST" action="/admin/support/<%= t.id %>/status" style="display:inline">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <input type="hidden" name="status" value="closed">
+          <button type="submit" class="sup-btn-sm ghost">Close ticket</button>
+        </form>
+      <% } else { %>
+        <form method="POST" action="/admin/support/<%= t.id %>/status" style="display:inline">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <input type="hidden" name="status" value="open">
+          <button type="submit" class="sup-btn-sm ghost">↺ Reopen</button>
+        </form>
+      <% } %>
+      <a class="sup-btn-sm ghost" style="text-decoration:none;display:inline-flex;align-items:center" href="/admin/support/<%= t.id %>/print" target="_blank" rel="noopener">🖨 Print / PDF</a>
+      <a class="sup-btn-sm ghost" style="text-decoration:none;display:inline-flex;align-items:center" href="/support/ticket/<%= t.access_token %>" target="_blank" rel="noopener">Customer view ↗</a>
+    </div>
+  </div>
+
+  <div class="sup-meta">
+    <div class="cell"><b>Customer</b><span><%= t.name %><br><a href="mailto:<%= t.email %>"><%= t.email %></a><% if (t.phone) { %><br><%= t.phone %><% } %></span></div>
+    <div class="cell"><b>Opened</b><span><%= SUP.fmt(t.created_at) %></span></div>
+    <div class="cell"><b>Reference / payment</b><span><%= t.order_ref || '—' %><% if (t.payment_ref) { %><br>Payment ID: <%= t.payment_ref %><% } %></span></div>
+    <div class="cell"><b>Product / service</b><span><%= t.product_title || '—' %></span></div>
+    <div class="cell"><b>Browser</b><span style="font-size:0.75rem"><%= t.browser_info || '—' %></span></div>
+    <div class="cell"><b>Device / IP</b><span style="font-size:0.75rem"><%= t.device_info || '—' %><br><%= t.ip || '' %></span></div>
+  </div>
+
+  <% if (order) { %>
+    <div class="sup-card" style="margin-bottom:16px;background:#f0fdfa">
+      <b style="font-size:0.78rem;text-transform:uppercase;color:#0f766e">Matched order #<%= order.id %></b>
+      <p style="margin:6px 0 0;font-size:0.88rem">₹<%= order.total_amount %> · status <strong><%= order.status %></strong> · <%= SUP.fmt(order.created_at) %> · payment <%= order.payment_id || '—' %>
+      &nbsp; <a href="/admin/orders/<%= order.id %>">Open order →</a></p>
+    </div>
+  <% } %>
+
+  <% if (history.length) { %>
+    <div class="sup-card" style="margin-bottom:16px">
+      <b style="font-size:0.78rem;text-transform:uppercase;color:#64748b">Other tickets from this customer</b>
+      <p style="margin:6px 0 0;font-size:0.85rem">
+        <% history.forEach(function(h){ %>
+          <a href="/admin/support/<%= h.id %>"><%= h.ticket_no %></a> <span class="sup-badge st-<%= h.status %>" style="font-size:0.65rem"><%= SUP.STATUS_LABELS[h.status] %></span> &nbsp;
+        <% }) %>
+      </p>
+    </div>
+  <% } %>
+
+  <!-- ── Quick actions ── -->
+  <div class="sup-actions">
+    <form method="POST" action="/admin/support/<%= t.id %>/status">
+      <b>Status</b>
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <select name="status"><% SUP.STATUSES.forEach(function(s){ %><option value="<%= s %>" <%= t.status===s?'selected':'' %>><%= SUP.STATUS_LABELS[s] %></option><% }) %></select>
+      <button type="submit" class="sup-btn-sm">Set</button>
+    </form>
+    <form method="POST" action="/admin/support/<%= t.id %>/priority">
+      <b>Priority</b>
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <select name="priority"><% SUP.PRIORITIES.forEach(function(p){ %><option value="<%= p %>" <%= t.priority===p?'selected':'' %>><%= SUP.PRIORITY_LABELS[p] %></option><% }) %></select>
+      <button type="submit" class="sup-btn-sm">Set</button>
+    </form>
+    <form method="POST" action="/admin/support/<%= t.id %>/assign">
+      <b>Assign to</b>
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <select name="assigned_to">
+        <option value="">— unassigned —</option>
+        <% staff.forEach(function(s){ %><option value="<%= s.id %>" <%= t.assigned_to===s.id?'selected':'' %>><%= s.name %></option><% }) %>
+      </select>
+      <button type="submit" class="sup-btn-sm">Set</button>
+    </form>
+    <form method="POST" action="/admin/support/<%= t.id %>/merge">
+      <b>Merge into ticket</b>
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <input type="text" name="merge_into" placeholder="SUP-2026-000001" pattern="SUP-\d{4}-\d{6}">
+      <button type="submit" class="sup-btn-sm">Merge</button>
+    </form>
+    <form method="POST" action="/admin/support/<%= t.id %>/spam">
+      <b>Spam</b>
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <button type="submit" class="sup-btn-sm ghost"><%= t.is_spam ? 'Not spam' : 'Mark as spam' %></button>
+    </form>
+    <form method="POST" action="/admin/support/<%= t.id %>/spam-block" onsubmit="return confirm('Mark as spam and block this sender (email, domain and IP)? Their future tickets will be silently dropped.')">
+      <b>Spammer</b>
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <button type="submit" class="sup-btn-sm danger">Spam + block sender</button>
+    </form>
+    <form method="POST" action="/admin/support/<%= t.id %>/delete" onsubmit="return confirm('Permanently delete <%= t.ticket_no %> and all its messages and files? This cannot be undone.')">
+      <b>Danger zone</b>
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <button type="submit" class="sup-btn-sm danger">Delete ticket</button>
+    </form>
+  </div>
+
+  <!-- ── Conversation ── -->
+  <h2 style="font-size:1.05rem;margin:26px 0 0">Conversation</h2>
+  <div class="sup-thread">
+    <% msgs.forEach(function(m, i){ %>
+      <div class="sup-msg <%= m.is_internal ? 'internal' : m.sender %>" <%= i === msgs.length-1 ? 'id=latest' : '' %>>
+        <div class="meta"><%= m.is_internal ? ('🔒 Internal note — ' + (m.staff_name || 'staff')) : (m.sender === 'staff' ? (m.staff_name || 'Staff') : (t.name + ' (customer)')) %> · <%= SUP.fmt(m.created_at) %></div><%= m.body %><% const atts = attachmentsByMsg[m.id] || []; if (atts.length) { %><div class="sup-att"><% atts.forEach(function(a){ %><% if (a.mime.indexOf('image/') === 0) { %><a href="/support/attachment/<%= a.id %>?preview=1" target="_blank" rel="noopener"><img class="thumb" src="/support/attachment/<%= a.id %>" alt="Attachment: <%= a.orig_name %>"></a><% } else { %><a href="/support/attachment/<%= a.id %>">📄 <%= a.orig_name %> (<%= Math.round(a.size/1024) %> KB)</a><% } %><% }) %></div><% } %>
+      </div>
+    <% }) %>
+  </div>
+
+  <!-- ── Reply box ── -->
+  <div class="sup-card" id="reply">
+    <h2 style="font-size:1rem;margin:0 0 12px">Reply</h2>
+    <form class="sup-form" method="POST" action="/admin/support/<%= t.id %>/reply" enctype="multipart/form-data">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <% if (templates.length) { %>
+        <div class="sup-row">
+          <select id="supTemplate" data-name="<%= t.name %>" data-order="<%= t.order_ref || 'your order' %>" aria-label="Insert template">
+            <option value="">— insert a reply template —</option>
+            <% templates.forEach(function(tp){ %><option value="<%= tp.body %>"><%= tp.title %></option><% }) %>
+          </select>
+        </div>
+      <% } %>
+      <div class="sup-row">
+        <textarea name="message" id="supReplyBox" required minlength="1" maxlength="8000" placeholder="Type a reply to the customer, or an internal note…"></textarea>
+      </div>
+      <div class="sup-row">
+        <div class="sup-files">
+          <input type="file" name="attachments" multiple accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf" aria-label="Attach files">
+          <div class="sup-hint">Up to 3 files — JPG, PNG or PDF, max 10&nbsp;MB each.</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+        <label style="display:inline-flex;align-items:center;gap:6px;font-size:0.85rem;font-weight:600">
+          <input type="checkbox" name="is_internal" value="1" style="width:18px;height:18px"> Internal note (customer will NOT see or be emailed)
+        </label>
+        <select name="new_status" aria-label="Also set status" style="min-height:40px;border:1px solid #d1d5db;border-radius:8px;padding:6px 8px">
+          <option value="">Keep status / auto</option>
+          <% SUP.STATUSES.forEach(function(s){ %><option value="<%= s %>">…and mark <%= SUP.STATUS_LABELS[s] %></option><% }) %>
+        </select>
+        <button type="submit" class="btn btn-primary">Send</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- ── Activity timeline ── -->
+  <div class="sup-card" style="margin-top:18px">
+    <h2 style="font-size:1rem;margin:0 0 12px">Activity timeline &amp; audit log</h2>
+    <ul class="sup-timeline">
+      <% events.forEach(function(e){ %>
+        <li><strong><%= e.actor %></strong> — <%= e.kind %><%= e.detail ? ': ' + e.detail : '' %><span class="when"><%= SUP.fmt(e.created_at) %></span></li>
+      <% }) %>
+    </ul>
+  </div>
+</main>
+<script src="/js/support.js" defer></script>

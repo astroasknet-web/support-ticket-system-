@@ -1,0 +1,117 @@
+<main class="sup-wrap sup-wrap-narrow">
+  <div class="sup-head">
+    <h1>Customer Support</h1>
+    <p>Something not working, or a question about your account or an order? Tell us below. We reply within <strong><%= REPLY_WITHIN %></strong>, usually much faster.</p>
+    <% if (locals.user && user) { %>
+      <p style="margin-top:8px"><a href="/dashboard/support">→ View my existing tickets</a></p>
+    <% } %>
+  </div>
+
+  <% if (errors && errors.length) { %>
+    <div class="sup-errors" role="alert">
+      <ul><% errors.forEach(function(e){ %><li><%= e %></li><% }) %></ul>
+    </div>
+  <% } %>
+
+  <form class="sup-card sup-form" method="POST" action="/support" enctype="multipart/form-data" id="supForm">
+    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+    <%# Honeypot — humans never see or fill this field %>
+    <input type="hidden" name="form_ts" value="<%= Date.now() %>">
+    <div class="sup-hp" aria-hidden="true"><label>Website<input type="text" name="website" tabindex="-1" autocomplete="off"></label></div>
+    <input type="hidden" name="browser_info" id="supBrowserInfo">
+    <input type="hidden" name="device_info" id="supDeviceInfo">
+
+    <div class="sup-row two">
+      <div>
+        <label for="supName">Full name <span class="req">*</span></label>
+        <input type="text" id="supName" name="name" required minlength="2" maxlength="120" value="<%= form.name || (locals.user && user ? user.name : '') %>">
+      </div>
+      <div>
+        <label for="supEmail">Email address <span class="req">*</span></label>
+        <input type="email" id="supEmail" name="email" required maxlength="190" value="<%= form.email || (locals.user && user ? user.email : '') %>">
+        <div class="sup-hint">Your ticket link and our replies go to this address.</div>
+      </div>
+    </div>
+
+    <div class="sup-row two">
+      <div>
+        <label for="supPhone">Mobile number (optional)</label>
+        <input type="tel" id="supPhone" name="phone" maxlength="30" value="<%= form.phone || '' %>">
+      </div>
+      <div>
+        <label for="supCat">Issue category <span class="req">*</span></label>
+        <select id="supCat" name="category_id" required>
+          <option value="">— choose the issue type —</option>
+          <% cats.forEach(function(c){ %>
+            <option value="<%= c.id %>" data-slug="<%= c.slug %>" <%= String(form.category_id||'')===String(c.id)?'selected':'' %>><%= c.name %></option>
+          <% }) %>
+        </select>
+      </div>
+    </div>
+
+    <div class="sup-row two">
+      <div>
+        <label for="supOrder">Reference or order ID (optional)</label>
+        <input type="text" id="supOrder" name="order_ref" maxlength="60" value="<%= form.order_ref || '' %>" placeholder="e.g. 1042">
+        <div class="sup-hint">Shown on your confirmation email or receipt.</div>
+      </div>
+      <div>
+        <label for="supPay">Payment or transaction ID (optional)</label>
+        <input type="text" id="supPay" name="payment_ref" maxlength="80" value="<%= form.payment_ref || '' %>" placeholder="From your payment receipt">
+      </div>
+    </div>
+
+    <div class="sup-row">
+      <div>
+        <label for="supProduct">Which product or service is this about? (optional)</label>
+        <input type="text" id="supProduct" name="product_title" maxlength="255" value="<%= form.product_title || '' %>" placeholder="e.g. Premium plan">
+      </div>
+    </div>
+
+    <div class="sup-row">
+      <div>
+        <label for="supSubject">Subject <span class="req">*</span></label>
+        <input type="text" id="supSubject" name="subject" required minlength="5" maxlength="200" value="<%= form.subject || '' %>" placeholder="One line summarising the issue">
+      </div>
+    </div>
+
+    <div class="sup-row">
+      <div>
+        <label for="supDesc">Describe the issue <span class="req">*</span></label>
+        <textarea id="supDesc" name="description" required minlength="15" maxlength="8000" placeholder="What happened, what you expected, and any error message you saw."><%= form.description || '' %></textarea>
+      </div>
+    </div>
+
+    <div class="sup-row">
+      <div class="sup-files">
+        <label for="supFiles">Attachments (optional) — a screenshot and/or a receipt</label>
+        <input type="file" id="supFiles" name="attachments" multiple accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf">
+        <div class="sup-hint">Up to 3 files. JPG, PNG or PDF only, max 10&nbsp;MB each.</div>
+        <div class="sup-hint" id="supFileWarn" style="color:#b91c1c;display:none"></div>
+      </div>
+    </div>
+
+    <% if (captchaQ) { %>
+      <div class="sup-row">
+        <div>
+          <label for="supCaptcha">Security check: what is <strong><%= captchaQ %></strong>? <span class="req">*</span></label>
+          <input type="number" id="supCaptcha" name="captcha" required inputmode="numeric" autocomplete="off" style="max-width:140px">
+          <div class="sup-hint">This also protects the file upload above — one check covers the whole ticket.</div>
+        </div>
+      </div>
+    <% } %>
+
+    <button type="submit" class="btn btn-primary" style="min-height:48px;font-size:1rem">Submit Ticket</button>
+  </form>
+
+  <section class="sup-kb" id="supKb">
+    <h2>Before you submit — quick answers to common issues</h2>
+    <% kb.forEach(function(item){ %>
+      <details data-cats="<%= item.cats.join(' ') %>">
+        <summary><%= item.q %></summary>
+        <p><%= item.a %></p>
+      </details>
+    <% }) %>
+  </section>
+</main>
+<script src="/js/support.js" defer></script>

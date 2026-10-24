@@ -1,0 +1,42 @@
+<main class="sup-wrap">
+  <div class="sup-head" style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px">
+    <div>
+      <h1>My Support Tickets</h1>
+      <p>All requests linked to <strong><%= user.email %></strong>.</p>
+    </div>
+    <a class="btn btn-primary" href="/support">+ New ticket</a>
+  </div>
+
+  <form class="sup-filters" method="GET" action="/dashboard/support">
+    <input type="text" name="q" value="<%= q %>" placeholder="Search by ticket no, subject or order ID…" aria-label="Search tickets">
+    <button type="submit" class="sup-btn-sm">Search</button>
+    <% if (q) { %><a class="sup-btn-sm ghost" href="/dashboard/support" style="text-decoration:none;display:inline-flex;align-items:center">Clear</a><% } %>
+  </form>
+
+  <% if (!tickets.length) { %>
+    <div class="sup-card" style="text-align:center;padding:40px">
+      <p style="margin:0 0 14px;color:#64748b"><%= q ? 'No tickets match that search.' : 'You have no support tickets yet — hopefully it stays that way!' %></p>
+      <a class="btn btn-primary" href="/support">Open a ticket</a>
+    </div>
+  <% } else { %>
+    <div class="sup-table-wrap">
+      <table class="sup-table">
+        <thead><tr><th>Ticket</th><th>Subject</th><th>Category</th><th>Status</th><th>Updated</th></tr></thead>
+        <tbody>
+          <% tickets.forEach(function(t){ %>
+            <tr>
+              <td>
+                <a class="ticket-link" href="/support/ticket/<%= t.access_token %>"><%= t.ticket_no %></a>
+                <% if (t.unread > 0) { %><span class="sup-unread" title="New replies"><%= t.unread %></span><% } %>
+              </td>
+              <td><%= t.subject %><% if (t.order_ref) { %><div class="sub">Order <%= t.order_ref %></div><% } %></td>
+              <td><%= t.category_name || '—' %></td>
+              <td><span class="sup-badge st-<%= t.status %>"><%= SUP.STATUS_LABELS[t.status] %></span></td>
+              <td class="sub"><%= SUP.fmt(t.updated_at) %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</main>

@@ -1,0 +1,29 @@
+<main class="sup-wrap sup-wrap-narrow">
+  <div class="sup-card" style="text-align:center;padding:44px 26px">
+    <div style="width:72px;height:72px;margin:0 auto 18px;border-radius:50%;background:#d1fae5;display:flex;align-items:center;justify-content:center">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#047857" stroke-width="2.5" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+    </div>
+    <% if (duplicate) { %>
+      <h1 style="font-size:1.5rem;margin:0 0 10px">You already have an open ticket for this</h1>
+      <p style="color:#475569;max-width:460px;margin:0 auto 18px;line-height:1.7">
+        A ticket with this subject was opened from your email in the last day, so we did not create a second one.
+        We have re-sent the ticket link to <strong><%= ticket.email %></strong>.
+      </p>
+    <% } else { %>
+      <h1 style="font-size:1.5rem;margin:0 0 10px">Thank you — your ticket is in!</h1>
+      <p style="color:#475569;max-width:460px;margin:0 auto 18px;line-height:1.7">
+        Our support team will get back to you within <strong><%= REPLY_WITHIN %></strong>.
+        A confirmation email with your ticket link is on its way to <strong><%= ticket.email %></strong> — check spam if it doesn't arrive.
+      </p>
+    <% } %>
+    <div style="background:#f8fafc;border:1px solid #e5e7eb;border-radius:10px;display:inline-block;padding:12px 28px;margin-bottom:22px">
+      <div style="font-size:0.72rem;text-transform:uppercase;letter-spacing:.05em;color:#64748b">Your ticket number</div>
+      <div style="font-size:1.4rem;font-weight:800;color:var(--primary,#0f766e)"><%= ticket.ticket_no %></div>
+    </div>
+    <div>
+      <a class="btn btn-primary" href="/support/ticket/<%= ticket.access_token %>">Open my ticket</a>
+
+    </div>
+    <p class="sup-hint" style="margin-top:18px">Save the ticket link from your email — it lets you check status and reply any time, no login needed.</p>
+  </div>
+</main>

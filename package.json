@@ -1,0 +1,39 @@
+{
+  "name": "support-ticket-system",
+  "version": "1.0.0",
+  "description": "A self-hosted customer support ticket system (Node.js, Express, EJS, MySQL).",
+  "main": "server.js",
+  "license": "UNLICENSED",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "migrate": "node scripts/migrate.js",
+    "create-admin": "node scripts/create-admin.js",
+    "seed-demo": "node scripts/seed-support-demo.js",
+    "test": "node --test test/smoke.test.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "dotenv": "^16.4.5",
+    "ejs": "^3.1.10",
+    "express": "^4.19.2",
+    "express-ejs-layouts": "^2.5.1",
+    "express-mysql-session": "^3.0.3",
+    "express-rate-limit": "^7.3.1",
+    "express-session": "^1.18.0",
+    "helmet": "^7.1.0",
+    "multer": "^2.4.0",
+    "mysql2": "^3.23.1",
+    "nodemailer": "^9.1.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.2"
+  },
+  "overrides": {
+    "brace-expansion": "^5.0.9",
+    "filelist": {
+      "minimatch": "^10.2.5"
+    }
+  }
+}

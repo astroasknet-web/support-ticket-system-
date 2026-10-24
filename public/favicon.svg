@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="MathStudy.in">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2447a8"/>
+      <stop offset="1" stop-color="#1e2d6e"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" ry="112" fill="url(#bg)"/>
+  <!-- geometric M -->
+  <path d="M132 372 V150 L256 292 L380 150 V372"
+        fill="none" stroke="#ffffff" stroke-width="52"
+        stroke-linejoin="round" stroke-linecap="round"/>
+  <!-- teal accent baseline (echoes the ".in") -->
+  <rect x="168" y="404" width="176" height="26" rx="13" fill="#0d9488"/>
+</svg>

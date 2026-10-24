@@ -1,0 +1,41 @@
+<% locals.layout = 'layout' %>
+<div class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-logo"><a href="/" class="nav-logo" style="justify-content:center"><div class="logo-badge"><%= BRAND.charAt(0).toUpperCase() %></div><%= BRAND %></a></div>
+    <h1 class="auth-title" style="font-size:1.4rem">Create an account</h1>
+    <p class="auth-sub">Sign up to keep all your tickets in one place</p>
+    <% if (locals.error && error) { %><div class="form-error"><%= error %></div><% } %>
+    <form action="/auth/register" method="POST">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <input type="hidden" name="form_ts" value="<%= Date.now() %>">
+        <!-- Honeypot: humans never see or fill this field -->
+        <div style="position:absolute;left:-9999px;top:-9999px" aria-hidden="true">
+          <label>Website</label><input type="text" name="website" tabindex="-1" autocomplete="off">
+        </div>
+      <div class="form-group">
+        <label for="name">Full Name</label>
+        <input type="text" id="name" name="name" required placeholder="Your name">
+      </div>
+      <div class="form-group">
+        <label for="email">Email Address</label>
+        <input type="email" id="email" name="email" required placeholder="you@example.com">
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required minlength="8" placeholder="Min. 8 characters">
+      </div>
+      <div class="form-group">
+        <label for="confirm_password">Confirm Password</label>
+        <input type="password" id="confirm_password" name="confirm_password" required placeholder="Repeat password">
+      </div>
+      <% if (locals.captchaQ && captchaQ) { %>
+      <div class="form-group">
+        <label for="regCaptcha">Security check: what is <strong><%= captchaQ %></strong>?</label>
+        <input type="number" id="regCaptcha" name="captcha" required inputmode="numeric" style="max-width:140px">
+      </div>
+      <% } %>
+      <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;padding:12px">Create Account</button>
+    </form>
+    <p class="form-alt">Already have an account? <a href="/auth/login">Log in</a></p>
+  </div>
+</div>

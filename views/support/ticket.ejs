@@ -1,0 +1,73 @@
+<main class="sup-wrap sup-wrap-narrow">
+  <div class="sup-head">
+    <p style="margin-bottom:4px"><a href="<%= locals.user && user ? '/dashboard/support' : '/support' %>">← <%= locals.user && user ? 'My tickets' : 'Support home' %></a></p>
+    <h1 style="font-size:1.35rem"><%= t.ticket_no %> — <%= t.subject %></h1>
+    <p>
+      <span class="sup-badge st-<%= t.status %>"><%= SUP.STATUS_LABELS[t.status] %></span>
+      <span class="sup-badge pr-<%= t.priority %>"><%= SUP.PRIORITY_LABELS[t.priority] %> priority</span>
+      <% if (t.category_name) { %><span class="sup-badge" style="background:#f1f5f9;color:#334155"><%= t.category_name %></span><% } %>
+    </p>
+  </div>
+
+  <div class="sup-meta">
+    <div class="cell"><b>Opened</b><span><%= SUP.fmt(t.created_at) %></span></div>
+    <div class="cell"><b>Last update</b><span><%= SUP.fmt(t.updated_at) %></span></div>
+    <% if (t.order_ref) { %><div class="cell"><b>Reference / order ID</b><span><%= t.order_ref %></span></div><% } %>
+    <% if (t.product_title) { %><div class="cell"><b>Product / service</b><span><%= t.product_title %></span></div><% } %>
+  </div>
+
+  <div class="sup-thread">
+    <% msgs.forEach(function(m, i){ %>
+      <div class="sup-msg <%= m.sender %>" <%= i === msgs.length-1 ? 'id=latest' : '' %>>
+        <div class="meta"><%= m.sender === 'staff' ? BRAND + ' Support' : t.name %> · <%= SUP.fmt(m.created_at) %></div><%= m.body %><% const atts = attachmentsByMsg[m.id] || []; if (atts.length) { %><div class="sup-att"><% atts.forEach(function(a){ %><% if (a.mime.indexOf('image/') === 0) { %><a href="/support/attachment/<%= a.id %>?t=<%= t.access_token %>&preview=1" target="_blank" rel="noopener"><img class="thumb" src="/support/attachment/<%= a.id %>?t=<%= t.access_token %>" alt="Attachment: <%= a.orig_name %>"></a><% } else { %><a href="/support/attachment/<%= a.id %>?t=<%= t.access_token %>">📄 <%= a.orig_name %> (<%= Math.round(a.size/1024) %> KB)</a><% } %><% }) %></div><% } %>
+      </div>
+    <% }) %>
+  </div>
+
+  <% if (['resolved','closed'].includes(t.status) && !t.rating) { %>
+    <div class="sup-card" style="margin-bottom:18px">
+      <h2 style="font-size:1rem;margin:0 0 10px">How was our support? Rate your experience</h2>
+      <form method="POST" action="/support/ticket/<%= t.access_token %>/rating" class="sup-form">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <div class="sup-rate" id="supRate">
+          <% for (let s = 1; s <= 5; s++) { %>
+            <label class="star" data-star="<%= s %>"><input type="radio" name="rating" value="<%= s %>" required><span aria-hidden="true">★</span><span class="sr-only" style="position:absolute;left:-9999px"><%= s %> star</span></label>
+          <% } %>
+        </div>
+        <div class="sup-row" style="margin-top:10px">
+          <textarea name="rating_comment" maxlength="500" placeholder="Anything we could do better? (optional)" style="min-height:70px"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary" style="margin-top:10px">Submit rating</button>
+      </form>
+    </div>
+  <% } else if (t.rating) { %>
+    <div class="sup-card" style="margin-bottom:18px;background:#f0fdf4">
+      <p style="margin:0">You rated this ticket <strong><%= t.rating %>/5</strong> — thank you for the feedback!</p>
+    </div>
+  <% } %>
+
+  <% if (t.status === 'closed') { %>
+    <div class="sup-card" style="background:#f8fafc;border:1px solid #e2e8f0">
+      <h2 style="font-size:1rem;margin:0 0 8px">This ticket is closed</h2>
+      <p style="margin:0">This ticket has been closed and can no longer be replied to. If you still need help, please <a href="/support">open a new support ticket</a>.</p>
+    </div>
+  <% } else { %>
+  <div class="sup-card">
+    <h2 style="font-size:1rem;margin:0 0 12px"><%= t.status === 'resolved' ? 'Still need help? Reply to reopen this ticket' : 'Reply to this ticket' %></h2>
+    <form class="sup-form" method="POST" action="/support/ticket/<%= t.access_token %>/reply" enctype="multipart/form-data">
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+      <div class="sup-row">
+        <textarea name="message" required minlength="2" maxlength="8000" placeholder="Type your reply…"></textarea>
+      </div>
+      <div class="sup-row">
+        <div class="sup-files">
+          <input type="file" name="attachments" multiple accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf" aria-label="Attach files">
+          <div class="sup-hint">Up to 3 files — JPG, PNG or PDF, max 10&nbsp;MB each.</div>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary">Send reply</button>
+    </form>
+  </div>
+  <% } %>
+</main>
+<script src="/js/support.js" defer></script>

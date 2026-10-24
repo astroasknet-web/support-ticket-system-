@@ -1,0 +1,6 @@
+[
+  { "cats": ["billing-payments"], "q": "I was charged but my order is not showing", "a": "Payments can take a few minutes to appear. Check your email (including spam) for a confirmation. If nothing arrives within an hour, open a ticket with the payment reference from your receipt and we will trace it." },
+  { "cats": ["billing-payments", "order-delivery"], "q": "I need an invoice or receipt", "a": "Reply on your ticket with your order reference and the name you want on the invoice, and we will send a receipt within one working day." },
+  { "cats": ["account-login"], "q": "I cannot log in or forgot my password", "a": "Check that you are using the email address you signed up with. If you still cannot get in, open a ticket from that email address and we will help you regain access." },
+  { "cats": ["technical-problem"], "q": "Something is not working as expected", "a": "Try refreshing the page or using a different browser first. If the problem remains, tell us what you clicked, what you expected, what happened instead, and attach a screenshot." }
+]

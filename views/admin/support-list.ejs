@@ -1,0 +1,167 @@
+<main class="sup-wrap">
+  <div class="sup-head" style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px">
+    <div>
+      <p style="margin-bottom:4px"><a href="/support">← Public ticket form</a></p>
+      <h1>Support Tickets</h1>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <a class="sup-btn-sm ghost" style="text-decoration:none;display:inline-flex;align-items:center" href="/admin/support/export.csv">⬇ Export CSV</a>
+      <a class="sup-btn-sm <%= f.spam ? '' : 'ghost' %>" style="text-decoration:none;display:inline-flex;align-items:center" href="/admin/support<%= f.spam ? '' : '?spam=1' %>">
+        <%= f.spam ? '← Back to inbox' : ('Spam (' + spamCount + ')') %>
+      </a>
+    </div>
+  </div>
+
+  <div class="sup-stats">
+    <div class="sup-stat"><div class="num"><%= stats.total || 0 %></div><div class="lbl">Total</div></div>
+    <div class="sup-stat"><div class="num"><%= stats.open_n || 0 %></div><div class="lbl">Open</div></div>
+    <div class="sup-stat"><div class="num"><%= stats.pending_n || 0 %></div><div class="lbl">Pending</div></div>
+    <div class="sup-stat"><div class="num"><%= stats.waiting_n || 0 %></div><div class="lbl">Waiting Cust.</div></div>
+    <div class="sup-stat"><div class="num"><%= stats.resolved_n || 0 %></div><div class="lbl">Resolved</div></div>
+    <div class="sup-stat"><div class="num"><%= stats.closed_n || 0 %></div><div class="lbl">Closed</div></div>
+    <div class="sup-stat"><div class="num"><%= stats.today_n || 0 %></div><div class="lbl">Today</div></div>
+    <div class="sup-stat alert"><div class="num"><%= stats.critical_n || 0 %></div><div class="lbl">Critical open</div></div>
+    <div class="sup-stat"><div class="num"><%= stats.avg_res_hours == null ? '—' : stats.avg_res_hours + 'h' %></div><div class="lbl">Avg resolution</div></div>
+    <div class="sup-stat"><div class="num"><%= stats.avg_rating == null ? '—' : stats.avg_rating + '★' %></div><div class="lbl">Avg rating</div></div>
+  </div>
+
+  <form class="sup-filters" method="GET" action="/admin/support">
+    <% if (f.spam) { %><input type="hidden" name="spam" value="1"><% } %>
+    <select name="status" aria-label="Filter by status">
+      <option value="">All statuses</option>
+      <% SUP.STATUSES.forEach(function(s){ %><option value="<%= s %>" <%= f.status===s?'selected':'' %>><%= SUP.STATUS_LABELS[s] %></option><% }) %>
+    </select>
+    <select name="priority" aria-label="Filter by priority">
+      <option value="">All priorities</option>
+      <% SUP.PRIORITIES.forEach(function(p){ %><option value="<%= p %>" <%= f.priority===p?'selected':'' %>><%= SUP.PRIORITY_LABELS[p] %></option><% }) %>
+    </select>
+    <select name="cat" aria-label="Filter by category">
+      <option value="0">All categories</option>
+      <% cats.forEach(function(c){ %><option value="<%= c.id %>" <%= f.cat===c.id?'selected':'' %>><%= c.name %></option><% }) %>
+    </select>
+    <input type="text" name="q" value="<%= f.q %>" placeholder="Search no / name / email / subject / reference…" aria-label="Search tickets">
+    <button type="submit" class="sup-btn-sm">Filter</button>
+    <a class="sup-btn-sm ghost" style="text-decoration:none;display:inline-flex;align-items:center" href="/admin/support">Reset</a>
+  </form>
+
+  <% if (!tickets.length) { %>
+    <div class="sup-card" style="text-align:center;padding:36px;color:#64748b">No tickets match.</div>
+  <% } else { %>
+    <div class="sup-table-wrap">
+      <table class="sup-table">
+        <thead><tr><th>Ticket</th><th>Customer</th><th>Subject</th><th>Category</th><th>Priority</th><th>Status</th><th>Assigned</th><th>Updated</th><th>Actions</th></tr></thead>
+        <tbody>
+          <% tickets.forEach(function(t){ %>
+            <tr>
+              <td>
+                <a class="ticket-link" href="/admin/support/<%= t.id %>"><%= t.ticket_no %></a>
+                <% if (t.unread > 0) { %><span class="sup-unread" title="Unread customer messages"><%= t.unread %></span><% } %>
+                <% if (t.rating) { %><div class="sub"><%= t.rating %>★</div><% } %>
+              </td>
+              <td><%= t.name %><div class="sub"><%= t.email %></div></td>
+              <td><a href="/admin/support/<%= t.id %>" style="color:inherit;text-decoration:none"><%= t.subject %></a><% if (t.order_ref) { %><div class="sub">Order <%= t.order_ref %></div><% } %></td>
+              <td class="sub"><%= t.category_name || '—' %></td>
+              <td><span class="sup-badge pr-<%= t.priority %>"><%= SUP.PRIORITY_LABELS[t.priority] %></span></td>
+              <td><span class="sup-badge st-<%= t.status %>"><%= SUP.STATUS_LABELS[t.status] %></span></td>
+              <td class="sub"><%= t.staff_name || '—' %></td>
+              <td class="sub"><%= SUP.fmt(t.updated_at) %></td>
+              <td style="white-space:nowrap">
+                <a class="sup-btn-sm" style="text-decoration:none;display:inline-flex;align-items:center" href="/admin/support/<%= t.id %>">✉ Open&nbsp;/&nbsp;Reply</a>
+                <% if (!['resolved','closed'].includes(t.status)) { %>
+                <form method="POST" action="/admin/support/<%= t.id %>/status" style="display:inline">
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                  <input type="hidden" name="status" value="closed">
+                  <input type="hidden" name="back" value="list">
+                  <button type="submit" class="sup-btn-sm ghost" title="Close without reply">Close</button>
+                </form>
+                <% } %>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+    <% if (pages > 1) { %>
+      <div style="display:flex;gap:6px;margin-top:14px;flex-wrap:wrap">
+        <% for (let p = 1; p <= pages; p++) {
+             const qs = new URLSearchParams();
+             if (f.status) qs.set('status', f.status);
+             if (f.priority) qs.set('priority', f.priority);
+             if (f.cat) qs.set('cat', f.cat);
+             if (f.q) qs.set('q', f.q);
+             if (f.spam) qs.set('spam', '1');
+             qs.set('page', p); %>
+          <a class="sup-btn-sm <%= p===page?'':'ghost' %>" style="text-decoration:none" href="/admin/support?<%= qs.toString() %>"><%= p %></a>
+        <% } %>
+      </div>
+    <% } %>
+  <% } %>
+
+  <!-- ── Settings: categories + reply templates ── -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px;margin-top:34px">
+    <div class="sup-card">
+      <h2 style="font-size:1rem;margin:0 0 12px">Ticket categories</h2>
+      <div class="sup-table-wrap">
+        <table class="sup-table">
+          <thead><tr><th>Name</th><th>Default priority</th><th>Active</th></tr></thead>
+          <tbody>
+            <% cats.forEach(function(c){ %>
+              <tr>
+                <td><%= c.name %></td>
+                <td><span class="sup-badge pr-<%= c.default_priority %>"><%= SUP.PRIORITY_LABELS[c.default_priority] %></span></td>
+                <td>
+                  <form method="POST" action="/admin/support/settings/category" style="display:inline">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                    <input type="hidden" name="toggle_id" value="<%= c.id %>">
+                    <button type="submit" class="sup-btn-sm <%= c.is_active ? '' : 'ghost' %>"><%= c.is_active ? 'On' : 'Off' %></button>
+                  </form>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+      <form method="POST" action="/admin/support/settings/category" class="sup-filters" style="margin-top:12px;margin-bottom:0">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <input type="text" name="name" placeholder="New category name" required minlength="2" maxlength="80">
+        <select name="default_priority" aria-label="Default priority">
+          <% SUP.PRIORITIES.forEach(function(p){ %><option value="<%= p %>" <%= p==='medium'?'selected':'' %>><%= SUP.PRIORITY_LABELS[p] %></option><% }) %>
+        </select>
+        <button type="submit" class="sup-btn-sm">Add</button>
+      </form>
+    </div>
+
+    <div class="sup-card">
+      <h2 style="font-size:1rem;margin:0 0 12px">Reply templates</h2>
+      <% templates.forEach(function(tp){ %>
+        <details style="border:1px solid #e5e7eb;border-radius:8px;padding:0 12px;margin-bottom:8px;<%= tp.is_active ? '' : 'opacity:.5' %>">
+          <summary style="cursor:pointer;padding:10px 0;font-weight:600;font-size:0.88rem"><%= tp.title %><%= tp.is_active ? '' : ' (off)' %></summary>
+          <p style="white-space:pre-wrap;font-size:0.82rem;color:#475569"><%= tp.body %></p>
+          <form method="POST" action="/admin/support/settings/template" style="margin-bottom:10px">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <input type="hidden" name="toggle_id" value="<%= tp.id %>">
+            <button type="submit" class="sup-btn-sm ghost"><%= tp.is_active ? 'Deactivate' : 'Activate' %></button>
+          </form>
+        </details>
+      <% }) %>
+      <form method="POST" action="/admin/support/settings/template" class="sup-form" style="margin-top:12px">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <div class="sup-row"><input type="text" name="title" placeholder="Template title" required minlength="2" maxlength="120"></div>
+        <div class="sup-row"><textarea name="body" placeholder="Template body — use {name} and {order} placeholders" required style="min-height:80px"></textarea></div>
+        <button type="submit" class="sup-btn-sm">Add template</button>
+      </form>
+    </div>
+    <div class="sup-card">
+      <h2>Blocked spam senders</h2>
+      <% if (!blocklist || !blocklist.length) { %>
+        <p class="sup-hint">None yet. Use "Spam + block sender" on a ticket.</p>
+      <% } else { blocklist.forEach(function(b){ %>
+        <form method="POST" action="/admin/support/blocklist/<%= b.id %>/remove" style="display:flex;gap:8px;align-items:center;margin:4px 0">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <span><b><%= b.kind %></b>: <%= b.value %> <small>(<%= b.reason || '' %>)</small></span>
+          <button type="submit" class="sup-btn-sm ghost">Unblock</button>
+        </form>
+      <% }) } %>
+    </div>
+  </div>
+</main>
